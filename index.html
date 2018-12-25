@@ -23,6 +23,18 @@
 		</div>
 	</body>
 	<script type="text/javascript">
+		CanvasRenderingContext2D.prototype.drawDot = function(dot) {
+			this.beginPath();
+			this.arc(dot.x, dot.y, dot.r, 0, 2 * Math.PI);
+			this.fill();
+		};
+
+		CanvasRenderingContext2D.prototype.drawDot_ = function(x, y, radius) {
+			this.beginPath();
+			this.arc(x, y, radius, 0, 2 * Math.PI);
+			this.fill();
+		};
+
 		document.addEventListener("DOMContentLoaded",function(){
 			//setting up canvas sizes
 			var canvas = document.getElementById("canvas");
@@ -30,25 +42,96 @@
 		    canvas.setAttribute("height", getComputedStyle(canvas.parentNode).height);
 			if (canvas.getContext) {
 			    window.ctx = canvas.getContext('2d');
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
 			    window.a_dotes = [];
+			    
+			    canvas.onclick = function(event){
 
-			    var centerDot = new Dot(200, 200);
-				a_dotes.push(new Dot(centerDot.x - 100, centerDot.y - 100));
-				a_dotes.push(new Dot(centerDot.x + 100, centerDot.y - 100));
-				a_dotes.push(new Dot(centerDot.x - 100, centerDot.y + 100));
-				a_dotes.push(new Dot(centerDot.x + 100, centerDot.y + 100));
+			    	if(a_dotes.length > 0) {
+			    		a_dotes.push(new Dot(Math.floor(event.offsetX), Math.floor(event.offsetY), 2));
+			    		ctx.drawDot(a_dotes[a_dotes.length - 2].getDotBetween(a_dotes[a_dotes.length - 1]));
+			    	} else {
+			    		a_dotes.push(new Dot(Math.floor(event.offsetX), Math.floor(event.offsetY), 2));
+			    	}
+					ctx.drawDot(a_dotes[a_dotes.length - 1]);
+			    };
+			    return;
+			    //starting figure
+				a_dotes.push(new Dot(200, 50,  2));
+				a_dotes.push(new Dot(50,  300, 2));
+				a_dotes.push(new Dot(350, 300, 2));
 
-				a_dotes.forEach(function(dot){
-					ctx.beginPath();
-					ctx.arc(dot.x, dot.y, 5, 0, 2 * Math.PI);
-					ctx.fill();
+				//drawing starting dots
+				a_dotes.forEach(function(dot, i){
+					ctx.drawDot(dot);
 				});
+
+				//initial setup
+				var currentDot = a_dotes[0];
+				var randomedIndex;
+				for(var i = 0; i < 10; i++) {
+					randomedIndex = Math.floor( Math.random() * (a_dotes.length) );
+					currentDot = currentDot.getDotBetween(a_dotes[randomedIndex]);
+					a_dotes.push(currentDot);
+					ctx.drawDot(currentDot);
+				}
+
 		  	}
 		});
 
-		function Dot(x, y){
+		//Dot Class
+		function Dot(x, y, radius){
+			if(radius === undefined) radius = 1;
+			this.r = radius;
 			this.x = x;
-			this.y = x;
+			this.y = y;
+		}
+
+		//Returns Dot object with chords
+		//between this and parameter dot
+		Dot.prototype.getDotBetween = function(dot) {
+			/*      + or - is tg(phi) val 
+			    y                         y
+			  2 | 1        + | -        - | +
+			----d----x   ----d----x   ----d----x
+			  3 | 4        - | +        + | -
+			                 y
+			*/
+
+			//defining legs
+			var opposite_leg = dot.y - this.y;
+			var adjacent_leg = dot.x - this.x;
+			//distance between dots
+			var d = Math.sqrt(opposite_leg*opposite_leg + adjacent_leg*adjacent_leg)/2;
+			//defining start phi
+			var phi = Math.atan(opposite_leg/adjacent_leg);
+
+			//calculating correct phi
+			if(adjacent_leg > 0) {
+			//if 1 or 4
+				if(opposite_leg > 0) {
+				//if 4
+					phi = Math.PI*3/2 + phi;
+				} else {
+				//if 1
+					phi = -phi;
+				}
+			} else {
+			//if 2 or 3
+				if(opposite_leg > 0) {
+				//if 3
+					phi = Math.PI - phi;
+				} else {
+				//if 2
+					phi = Math.PI/2 + phi;
+				}
+			}
+			console.log("phi = " + phi * 180 / Math.PI);
+			console.log("cos = " + Math.cos(phi));
+			console.log("sin = " + Math.sin(phi);
+			var newX = this.x + d * Math.cos(phi);
+			var newY = this.y - d * Math.sin(phi);
+			return new Dot(newX, newY);
 		}
 	</script>
 </html>
