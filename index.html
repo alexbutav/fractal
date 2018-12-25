@@ -5,8 +5,8 @@
 		<style type="text/css">
 			.canvas_wrapper{
 				margin: 0 auto;
-				width: 400px;
-				height: 400px;
+				width: 800px;
+				height: 800px;
 				border: 10px solid #555;
 				padding: 15px;
 				background: #e0e0e0;
@@ -43,8 +43,9 @@
 			if (canvas.getContext) {
 			    window.ctx = canvas.getContext('2d');
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
-			    window.a_dotes = [];
-			    
+			    window.a_dotes  = [];
+			    window.vertexts = [];
+
 			    canvas.onclick = function(event){
 
 			    	if(a_dotes.length > 0) {
@@ -55,24 +56,23 @@
 			    	}
 					ctx.drawDot(a_dotes[a_dotes.length - 1]);
 			    };
-			    return;
-			    //starting figure
-				a_dotes.push(new Dot(200, 50,  2));
-				a_dotes.push(new Dot(50,  300, 2));
-				a_dotes.push(new Dot(350, 300, 2));
 
-				//drawing starting dots
-				a_dotes.forEach(function(dot, i){
+			    //starting vertexts
+				vertexts.push(new Dot(400, 50,  2));
+				vertexts.push(new Dot(50,  600, 2));
+				vertexts.push(new Dot(700, 600, 2));
+
+				vertexts.forEach(function(dot, i){
 					ctx.drawDot(dot);
 				});
+				var currentDot = vertexts[0];
+				ctx.drawDot(currentDot);
 
 				//initial setup
-				var currentDot = a_dotes[0];
 				var randomedIndex;
-				for(var i = 0; i < 10; i++) {
-					randomedIndex = Math.floor( Math.random() * (a_dotes.length) );
-					currentDot = currentDot.getDotBetween(a_dotes[randomedIndex]);
-					a_dotes.push(currentDot);
+				for(var i = 0; i < 30000; i++) {
+					randomedIndex = Math.floor( Math.random() * (vertexts.length));
+					currentDot = currentDot.getDotBetween(vertexts[randomedIndex]);
 					ctx.drawDot(currentDot);
 				}
 
@@ -87,50 +87,17 @@
 			this.y = y;
 		}
 
+		function randomInteger(min, max) {
+		    var rand = min + Math.random() * (max + 1 - min);
+		    rand = Math.floor(rand);
+		    return rand;
+		  }
+
 		//Returns Dot object with chords
 		//between this and parameter dot
-		Dot.prototype.getDotBetween = function(dot) {
-			/*      + or - is tg(phi) val 
-			    y                         y
-			  2 | 1        + | -        - | +
-			----d----x   ----d----x   ----d----x
-			  3 | 4        - | +        + | -
-			                 y
-			*/
-
-			//defining legs
-			var opposite_leg = dot.y - this.y;
-			var adjacent_leg = dot.x - this.x;
-			//distance between dots
-			var d = Math.sqrt(opposite_leg*opposite_leg + adjacent_leg*adjacent_leg)/2;
-			//defining start phi
-			var phi = Math.atan(opposite_leg/adjacent_leg);
-
-			//calculating correct phi
-			if(adjacent_leg > 0) {
-			//if 1 or 4
-				if(opposite_leg > 0) {
-				//if 4
-					phi = Math.PI*3/2 + phi;
-				} else {
-				//if 1
-					phi = -phi;
-				}
-			} else {
-			//if 2 or 3
-				if(opposite_leg > 0) {
-				//if 3
-					phi = Math.PI - phi;
-				} else {
-				//if 2
-					phi = Math.PI/2 + phi;
-				}
-			}
-			console.log("phi = " + phi * 180 / Math.PI);
-			console.log("cos = " + Math.cos(phi));
-			console.log("sin = " + Math.sin(phi);
-			var newX = this.x + d * Math.cos(phi);
-			var newY = this.y - d * Math.sin(phi);
+		Dot.prototype.getDotBetween = function(dot) {			
+			var newX = (dot.x + this.x)/2;
+			var newY = (dot.y + this.y)/2;
 			return new Dot(newX, newY);
 		}
 	</script>
